@@ -1,4 +1,5 @@
 template-file-path: ec2_def_vpc.yml
 parameters:
   instanceName: umaxcode-instance
+  instance2Name: max-instance
 tags: {}
