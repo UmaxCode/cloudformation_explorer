@@ -5,36 +5,37 @@ Parameters:
   instanceName:
     Type: String
     Description: Name of ec2 instance
-# Resources:
-#   myEC2Instance:
-#     Type: AWS::EC2::Instance
-#     Properties:
-#       KeyName: maxKey
-#       ImageId: ami-0984f4b9e98be44bf
-#       InstanceType: t2.micro
-#       UserData: !Base64 |
-#         #!/bin/bash -ex
 
-#         # Update all installed packages
-#         yum update -y
+Resources:
+  myEC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      KeyName: maxKey
+      ImageId: ami-0984f4b9e98be44bf
+      InstanceType: t2.micro
+      UserData: !Base64 |
+        #!/bin/bash -ex
 
-#         # Install Apache HTTP server
-#         yum install -y httpd
+        # Update all installed packages
+        yum update -y
 
-#         # Start Apache service
-#         systemctl start httpd
+        # Install Apache HTTP server
+        yum install -y httpd
 
-#         # Ensure Apache starts on boot
-#         systemctl enable httpd
+        # Start Apache service
+        systemctl start httpd
 
-#         # Optional: Create a simple index.html file for testing
-#         echo "<html><body><h1>Welcome to your Apache server on Amazon Linux</h1></body></html>" > /var/www/html/index.html
+        # Ensure Apache starts on boot
+        systemctl enable httpd
 
-#       Tags:
-#         - Key: key
-#           Value: !Ref instanceName
+        # Optional: Create a simple index.html file for testing
+        echo "<html><body><h1>Welcome to your Apache server on Amazon Linux</h1></body></html>" > /var/www/html/index.html
 
-# Outputs:
-#   Instance:
-#     Description: Public IP address of the EC2 instance
-#     Value: !GetAtt myEC2Instance.PublicIp
+      Tags:
+        - Key: key
+          Value: !Ref instanceName
+
+Outputs:
+  Instance:
+  Description: Public IP address of the EC2 instance
+  Value: !GetAtt myEC2Instance.PublicIp
