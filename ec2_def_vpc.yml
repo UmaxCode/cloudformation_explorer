@@ -2,43 +2,11 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: "Provisioning ec2 instance in default vpc"
 
 Parameters:
-  instanceName:
-    Type: String
-    Description: Name of ec2 instance
-
   instance2Name:
     Type: String
     Description: Name of ec2 instance
 
 Resources:
-  myEC2Instance:
-    Type: AWS::EC2::Instance
-    Properties:
-      KeyName: maxKey
-      ImageId: ami-0984f4b9e98be44bf
-      InstanceType: t2.micro
-      UserData: !Base64 |
-        #!/bin/bash -ex
-
-        # Update all installed packages
-        yum update -y
-
-        # Install Apache HTTP server
-        yum install -y httpd
-
-        # Start Apache service
-        systemctl start httpd
-
-        # Ensure Apache starts on boot
-        systemctl enable httpd
-
-        # Optional: Create a simple index.html file for testing
-        echo "<html><body><h1>Welcome to your Apache server on Amazon Linux</h1></body></html>" > /var/www/html/index.html
-
-      Tags:
-        - Key: key
-          Value: !Ref instanceName
-
   mySecondEC2Instance:
     Type: AWS::EC2::Instance
     Properties:
@@ -68,10 +36,6 @@ Resources:
           Value: !Ref instance2Name
 
 Outputs:
-  Instance:
-    Description: Public IP address of the EC2 instance
-    Value: !GetAtt myEC2Instance.PublicIp
-
   Instanc2:
     Description: Public IP address of the EC2 instance
     Value: !GetAtt mySecondEC2Instance.PublicIp
