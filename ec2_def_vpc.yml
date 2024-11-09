@@ -11,7 +11,7 @@ Resources:
     Type: AWS::EC2::Instance
     Properties:
       KeyName: maxKey
-      ImageId: ami-06b21ccaeff8cd686
+      ImageId: ami-0984f4b9e98be44bf
       InstanceType: t2.micro
       UserData: !Base64 |
         #!/bin/bash -ex
