@@ -36,5 +36,6 @@ Resources:
           Value: !Ref instanceName
 
 Outputs:
-  Description: Public IP address of the EC2 instance
-  Value: !GetAtt myEC2Instance.PublicIp
+  Instance:
+    Description: Public IP address of the EC2 instance
+    Value: !GetAtt myEC2Instance.PublicIp
