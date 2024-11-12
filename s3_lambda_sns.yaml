@@ -1,0 +1,114 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  # S3 Bucket where objects will be uploaded
+  MyS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "my-s3-bucket-${AWS::AccountId}-${AWS::Region}"
+
+  # SNS Topic to send email notifications
+  MySNSTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: my-sns-topic
+
+  # Lambda Role to allow it to read from S3 and publish to SNS
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaS3SNSPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: !Sub arn:aws:s3:::${MyS3Bucket}/*
+              - Effect: Allow
+                Action:
+                  - sns:Publish
+                Resource: !Ref MySNSTopic
+
+  # Lambda Function to send SNS notifications on object upload
+  MyLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: MyS3ToSNSLambda
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+
+          def handler(event, context):
+              # SNS client
+              sns = boto3.client('sns')
+              
+              # S3 event details
+              bucket = event['Records'][0]['s3']['bucket']['name']
+              key = event['Records'][0]['s3']['object']['key']
+              
+              # Message to send via SNS
+              message = f"An object was uploaded to S3 bucket '{bucket}'.\nObject key: {key}"
+              subject = f"New S3 Upload Notification for {bucket}"
+
+              # Publish message to SNS
+              sns.publish(
+                  TopicArn="arn:aws:sns:${AWS::Region}:${AWS::AccountId}:my-sns-topic",
+                  Subject=subject,
+                  Message=message
+              )
+              return {
+                  'statusCode': 200,
+                  'body': json.dumps('Notification sent to SNS')
+              }
+      Runtime: python3.8
+      Timeout: 60
+      MemorySize: 128
+
+  # S3 Bucket Notification to trigger Lambda on object upload
+  S3BucketNotification:
+    Type: AWS::S3::BucketNotification
+    Properties:
+      Bucket: !Ref MyS3Bucket
+      NotificationConfiguration:
+        LambdaFunctionConfigurations:
+          - Event: s3:ObjectCreated:*
+            Function: !GetAtt MyLambdaFunction.Arn
+
+  # Permission to allow S3 to invoke the Lambda function
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref MyLambdaFunction
+      Principal: s3.amazonaws.com
+      SourceArn: !GetAtt MyS3Bucket.Arn
+
+  # Subscription to SNS to send email notifications
+  SNSTopicSubscription:
+    Type: AWS::SNS::Subscription
+    Properties:
+      Protocol: email
+      Endpoint: "your-email@example.com" # Replace with the recipient email address
+      TopicArn: !Ref MySNSTopic
+
+Outputs:
+  S3BucketName:
+    Description: "Name of the S3 Bucket"
+    Value: !Ref MyS3Bucket
+  SNSTopicArn:
+    Description: "SNS Topic ARN"
+    Value: !Ref MySNSTopic
+  LambdaFunctionName:
+    Description: "Lambda Function Name"
+    Value: !Ref MyLambdaFunction
