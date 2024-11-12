@@ -1,4 +1,11 @@
 AWSTemplateFormatVersion: "2010-09-09"
+Description: This CloudFormation template provisions infrastructure enabling an S3 bucket to trigger a Lambda function upon object creation. The Lambda function then sends an email notification to specified recipients via Amazon SNS.
+
+Parameters:
+  userEmail:
+    Description: Enter the email to subscribe to the notification
+    Type: String
+
 Resources:
   # S3 Bucket where objects will be uploaded
   MyS3Bucket:
@@ -99,7 +106,7 @@ Resources:
     Type: AWS::SNS::Subscription
     Properties:
       Protocol: email
-      Endpoint: "your-email@example.com" # Replace with the recipient email address
+      Endpoint: !Ref userEmail
       TopicArn: !Ref MySNSTopic
 
 Outputs:
