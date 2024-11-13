@@ -3,7 +3,7 @@ Description: This CloudFormation template provisions infrastructure enabling an 
 
 Parameters:
   userEmail:
-    Description: Enter the email to subscribe to the notification
+    Description: Enter the email to subscribe to the notification.
     Type: String
 
 Resources:
