@@ -12,7 +12,7 @@ Resources:
     Type: AWS::S3::Bucket
     DependsOn: LambdaInvokePermission
     Properties:
-      BucketName: my-s3-bucket
+      BucketName: my-s3-bucket-max
       NotificationConfiguration:
         LambdaConfigurations:
           - Event: s3:ObjectCreated:Put
@@ -43,8 +43,13 @@ Resources:
               - Effect: Allow
                 Action:
                   - s3:GetObject
-                  - logs:*
-                Resource: !Sub arn:aws:s3:::${MyS3Bucket}/*
+                Resource: arn:aws:s3:::my-s3-bucket-max/*
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:*
               - Effect: Allow
                 Action:
                   - sns:Publish
@@ -57,14 +62,11 @@ Resources:
       FunctionName: MyS3ToSNSLambda
       Handler: index.handler
       Role: !GetAtt LambdaExecutionRole.Arn
-      Environment:
-        Variables:
-          AWS_REGION: !Ref "AWS::Region"
-          AWS_ACCOUNT_ID: !Ref "AWS::AccountId"
       Code:
         ZipFile: |
           import json
           import boto3
+          import os
 
           def handler(event, context):
 
@@ -106,7 +108,7 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref MyLambdaFunction
       Principal: s3.amazonaws.com
-      SourceArn: arn:aws:s3:::my-s3-bucket
+      SourceArn: arn:aws:s3:::my-s3-bucket-max
 
   # Subscription to SNS to send email notifications
   SNSTopicSubscription:
