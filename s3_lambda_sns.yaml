@@ -62,6 +62,9 @@ Resources:
       FunctionName: MyS3ToSNSLambda
       Handler: index.handler
       Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          AWS_ACCOUNT_ID: !Ref "AWS::AccountId"
       Code:
         ZipFile: |
           import json
