@@ -10,8 +10,13 @@ Resources:
   # S3 Bucket where objects will be uploaded
   MyS3Bucket:
     Type: AWS::S3::Bucket
+    DependsOn: LambdaInvokePermission
     Properties:
-      BucketName: !Sub "my-s3-bucket-${AWS::AccountId}-${AWS::Region}"
+      BucketName: my-s3-bucket
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: s3:ObjectCreated:Put
+            Function: !GetAtt MyLambdaFunction.Arn
 
   # SNS Topic to send email notifications
   MySNSTopic:
@@ -38,6 +43,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - s3:GetObject
+                  - logs:*
                 Resource: !Sub arn:aws:s3:::${MyS3Bucket}/*
               - Effect: Allow
                 Action:
@@ -82,16 +88,6 @@ Resources:
       Timeout: 60
       MemorySize: 128
 
-  # S3 Bucket Notification to trigger Lambda on object upload
-  S3BucketNotification:
-    Type: AWS::S3::BucketNotification
-    Properties:
-      Bucket: !Ref MyS3Bucket
-      NotificationConfiguration:
-        LambdaFunctionConfigurations:
-          - Event: s3:ObjectCreated:*
-            Function: !GetAtt MyLambdaFunction.Arn
-
   # Permission to allow S3 to invoke the Lambda function
   LambdaInvokePermission:
     Type: AWS::Lambda::Permission
@@ -99,7 +95,7 @@ Resources:
       Action: lambda:InvokeFunction
       FunctionName: !Ref MyLambdaFunction
       Principal: s3.amazonaws.com
-      SourceArn: !GetAtt MyS3Bucket.Arn
+      SourceArn: arn:aws:s3:::my-s3-bucket
 
   # Subscription to SNS to send email notifications
   SNSTopicSubscription:
