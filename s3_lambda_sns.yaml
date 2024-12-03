@@ -57,12 +57,23 @@ Resources:
       FunctionName: MyS3ToSNSLambda
       Handler: index.handler
       Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          AWS_REGION: !Ref "AWS::Region"
+          AWS_ACCOUNT_ID: !Ref "AWS::AccountId"
       Code:
         ZipFile: |
           import json
           import boto3
 
           def handler(event, context):
+
+              # retrieve environment variables
+              region = os.environ['AWS_REGION']
+              account_id = os.environ['AWS_ACCOUNT_ID']
+
+              topic_arn = f"arn:aws:sns:{region}:{account_id}:my-sns-topic"
+
               # SNS client
               sns = boto3.client('sns')
               
@@ -73,10 +84,10 @@ Resources:
               # Message to send via SNS
               message = f"An object was uploaded to S3 bucket '{bucket}'.\nObject key: {key}"
               subject = f"New S3 Upload Notification for {bucket}"
-
+              
               # Publish message to SNS
               sns.publish(
-                  TopicArn="arn:aws:sns:${AWS::Region}:${AWS::AccountId}:my-sns-topic",
+                  TopicArn=topic_arn,
                   Subject=subject,
                   Message=message
               )
